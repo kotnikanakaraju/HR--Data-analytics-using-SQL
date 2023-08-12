@@ -1,0 +1,69 @@
+select ï»¿Employee_Name from portfolio.hrdataset_v14 
+  where DateofHire between 01/01/2010 and 31/12/2015 and Position= 'IT Support';
+  
+ -- 1)find average salary of employess 
+select ï»¿Employee_Name,
+lag(Salary) over(partition by EmpID order by Salary) as minsalary,
+lead(Salary) over(partition by EmpID order by Salary) as maxsalary
+from portfolio.hrdataset_v14;
+
+-- find Heighest 1st paid employee
+SELECT ï»¿Employee_Name salary,
+rank() over(partition by GenderID order by salary)
+FROM portfolio.hrdataset_v14
+LIMIT 1;
+
+-- find the ranking of all the employees;
+SELECT ï»¿Employee_Name salary,
+dense_rank() over(partition by GenderID order by salary)
+FROM portfolio.hrdataset_v14;
+
+-- find how many employees are worked as differnt positons and mention that number in separate table
+SELECT ï»¿Employee_Name,Position, COUNT(*) AS Position_count_based
+FROM portfolio.hrdataset_v14
+GROUP BY PositionID;
+-- find managername of all employee along with employeeid based on salries  
+SELECT ManagerName, GROUP_CONCAT(ï»¿Employee_Name, ' ', EmpID) AS employees,
+Row_Number() over(order by Salary desc)
+FROM portfolio.hrdataset_v14
+GROUP BY ManagerID;
+
+-- find all employees who hired before 2015
+SELECT ï»¿Employee_Name,DateofHire
+FROM portfolio.hrdataset_v14
+where DateofHire<2015
+ORDER BY DateofHire;
+
+-- Retrieve employees earning more than the average salary whose gender id is 1
+SELECT ï»¿Employee_Name, Salary
+FROM portfolio.hrdataset_v14
+WHERE salary > (SELECT AVG(Salary) FROM portfolio.hrdataset_v14 where GenderID=1);
+
+-- find Employees in Each Department with the Highest Salary
+-- Find the average salary of employees in each department:
+SELECT Department, AVG(Salary) AS avg_salary
+FROM portfolio.hrdataset_v14
+JOIN portfolio.department_dataset ON portfolio.hrdataset_v14.Department = portfolio.department_dataset.Dept_name
+GROUP BY Department;
+
+-- find performancescore based on salary that to employee should have Absences atmost 5
+select ï»¿Employee_Name,PerformanceScore from portfolio.hrdataset_v14
+where Salary>(select avg(Salary) from portfolio.hrdataset_v14) and Absences=
+(select DaysLateLast30 from portfolio.hrdataset_v14 where DaysLateLast30=1);
+
+-- find the employee satifiaction when discuss with follwing scenarioes ssalary,manager,specialprojects count
+select ï»¿Employee_Name, EmpSatisfaction,
+case when salary>Max(Salary) over(partition by EmpId) then 'salary is satisfied'
+when SpecialProjectsCount>1 then 'work pressure is less'
+end goodsatisfaction
+from portfolio.hrdataset_v14;
+
+-- find employess belongs to particular state that to sex should be female order by empid
+select ï»¿Employee_Name,state from portfolio.hrdataset_v14
+ where state='CT' and Sex='F'
+ order by EmpID;
+
+-- find employess belongs to that employee date of birth in the year 2015 that to sex should be male order by empid
+select ï»¿Employee_Name,state from portfolio.hrdataset_v14
+ where DOB=(select DOB from portfolio.hrdataset_v14 where DOB=2015) and Sex='F'
+ order by EmpID;
